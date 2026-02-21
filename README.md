@@ -98,6 +98,8 @@ pip install -r requirements.txt
 - WSL2 Ubuntu 22.04
 - NVIDIA GPU (WSL CUDA supported)
 - NVIDIA driver installed on Windows
+- ⚠️ Recommended Python Version: 3.10  
+Python 3.13 is NOT supported due to CUDA extension build issues.
 
 Verify GPU:
 
