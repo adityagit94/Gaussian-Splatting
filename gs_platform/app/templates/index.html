@@ -1,0 +1,540 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Gaussian Splatting Platform</title>
+
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+  <style>
+    :root{
+      --bg: #0f1117;
+      --panel: #161b22;
+      --panel2:#0d1117;
+      --border:#30363d;
+      --text:#e6edf3;
+      --muted:#8b949e;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    a { color: inherit; }
+
+    /* Header */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(13,17,23,.90);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 16px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+    }
+    .logo{
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb, #9333ea);
+      box-shadow: 0 12px 30px rgba(147,51,234,.25);
+    }
+    .brand-title{
+      font-weight: 900;
+      letter-spacing: .2px;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+    .brand-sub{
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .pill{
+      border:1px solid var(--border);
+      background: rgba(22,27,34,.7);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Layout */
+    .wrap{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+    .card-title{
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing:.2px;
+      margin: 0 0 12px 0;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .muted{ color: var(--muted); font-size: 12px; }
+    .hint{ color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+    /* Form controls */
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0 0 6px 0;
+    }
+    input, select, textarea{
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(147,51,234,.8);
+      box-shadow: 0 0 0 3px rgba(147,51,234,.15);
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    .inline{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+    .inline input{ flex: 1; }
+
+    /* Buttons */
+    .btn{
+      border: none;
+      background: linear-gradient(135deg, #2563eb, #9333ea);
+      color: white;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .12s ease, opacity .12s ease;
+      white-space: nowrap;
+    }
+    .btn:hover{ transform: translateY(-1px); opacity: .95; }
+    .btn:active{ transform: translateY(0px); opacity: .9; }
+
+    .btn-ghost{
+      border: 1px solid var(--border);
+      background: rgba(22,27,34,.55);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor:pointer;
+      white-space: nowrap;
+    }
+    .btn-ghost:hover{ border-color: rgba(59,130,246,.7); }
+
+    .btn-danger{
+      background: linear-gradient(135deg, #ef4444, #f59e0b);
+    }
+
+    /* Checkboxes */
+    .checks{
+      display:flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .check{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      border:1px solid var(--border);
+      background: rgba(13,17,23,.55);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text);
+    }
+    .check input{ width: auto; }
+
+    /* Tip icon */
+    .tip{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      cursor: help;
+      position: relative;
+    }
+    .tip .tiptext{
+      display:none;
+      position:absolute;
+      top: 24px;
+      left: 0;
+      min-width: 260px;
+      background: rgba(13,17,23,.98);
+      border:1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 12px;
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+    .tip:hover .tiptext{ display:block; }
+
+    /* Modal host */
+    #modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(0,0,0,.55);
+      z-index: 100;
+      padding: 16px;
+    }
+    #modal.show{ display: grid; }
+
+    /* Small */
+    .divider{
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+      opacity: .85;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <div class="brand-title">Gaussian Splatting Platform</div>
+          <div class="brand-sub">Local GPU Reconstruction Dashboard (WSL + COLMAP + 3DGS)</div>
+        </div>
+      </div>
+      <div class="pill">Tip: Use <b>Video OR Images dir</b> (not both)</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="grid">
+
+      <!-- Left: Form -->
+      <div class="card">
+        <div class="card-title">
+          <div>New Job</div>
+          <div class="muted">Runs <b>gs_cli.py</b> and streams logs live</div>
+        </div>
+
+        <form method="post" action="/run" style="display:flex; flex-direction:column; gap:12px;">
+
+          <!-- Workspace -->
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <label style="margin:0;">Workspace (WSL path)</label>
+              <span class="tip">i
+                <span class="tiptext">
+                  Workspace is your project folder (outputs go here). Example:
+                  <br><code>/mnt/c/gs_data/projects/my_project</code>
+                </span>
+              </span>
+            </div>
+            <div class="inline">
+              <input name="workspace" value="/mnt/c/gs_data/projects/bultt" required />
+              <button class="btn-ghost" type="button"
+                hx-get="/browse?target=workspace&mode=dir&path=/mnt/c/gs_data/projects"
+                hx-target="#modal" hx-swap="innerHTML">Browse</button>
+            </div>
+          </div>
+
+          <!-- GS repo -->
+          <div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <label style="margin:0;">GS repo (folder that contains gs_cli.py)</label>
+              <span class="tip">i
+                <span class="tiptext">
+                  This is your gaussian-splatting repo path. Example:
+                  <br><code>/home/aditya/gaussian-splatting</code>
+                </span>
+              </span>
+            </div>
+            <div class="inline">
+              <input name="gs_repo" value="/home/aditya/gaussian-splatting" required />
+              <button class="btn-ghost" type="button"
+                hx-get="/browse?target=gs_repo&mode=dir&path=/home"
+                hx-target="#modal" hx-swap="innerHTML">Browse</button>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Video / Images -->
+          <div class="row">
+            <!-- Video -->
+            <div id="video_field">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <label style="margin:0;">Video path (WSL)</label>
+                <span class="tip">i
+                  <span class="tiptext">
+                    If using video, the browser shows only video formats and supports search.
+                    <br>Allowed: {{ video_exts }}
+                  </span>
+                </span>
+              </div>
+              <div class="inline">
+                <input name="video" placeholder="/mnt/c/Users/.../A001.mp4" />
+                <button class="btn-ghost" type="button"
+                  hx-get="/browse?target=video&mode=file&path=/mnt/c/Users"
+                  hx-target="#modal" hx-swap="innerHTML">Browse</button>
+              </div>
+              <div class="hint">Use either Video OR Images dir.</div>
+            </div>
+
+            <!-- Images -->
+            <div id="images_dir_field">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <label style="margin:0;">OR Images dir (WSL)</label>
+                <span class="tip">i
+                  <span class="tiptext">
+                    Use this if you already have extracted frames.
+                    Example:
+                    <br><code>/mnt/c/gs_data/projects/bultt/images</code>
+                  </span>
+                </span>
+              </div>
+              <div class="inline">
+                <input name="images_dir" placeholder="/mnt/c/gs_data/projects/bultt/images" />
+                <button class="btn-ghost" type="button"
+                  hx-get="/browse?target=images_dir&mode=dir&path=/mnt/c/gs_data/projects"
+                  hx-target="#modal" hx-swap="innerHTML">Browse</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Extraction params -->
+          <div class="row">
+            <div>
+              <label>FPS</label>
+              <input name="fps" value="2" />
+            </div>
+            <div>
+              <label>JPG quality (1 best)</label>
+              <input name="jpg_quality" value="2" />
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- COLMAP -->
+          <div class="row">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <label style="margin:0;">Matcher</label>
+                <span class="tip">i
+                  <span class="tiptext">
+                    <b>Sequential</b>: best for video frames.<br>
+                    <b>Exhaustive</b>: matches all pairs (slow for many images).
+                  </span>
+                </span>
+              </div>
+              <select name="matcher">
+                <option value="sequential" selected>sequential</option>
+                <option value="exhaustive">exhaustive</option>
+              </select>
+            </div>
+
+            <div>
+              <label>Overlap (sequential)</label>
+              <input name="overlap" value="20" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <label style="margin:0;">Camera model</label>
+                <span class="tip">i
+                  <span class="tiptext">
+                    Recommended default: <b>SIMPLE_RADIAL</b> for most phone videos.
+                    Use <b>OPENCV</b> for stronger distortion.
+                  </span>
+                </span>
+              </div>
+              <select name="camera_model">
+                <option value="SIMPLE_RADIAL" selected>SIMPLE_RADIAL</option>
+                <option value="PINHOLE">PINHOLE</option>
+                <option value="OPENCV">OPENCV</option>
+              </select>
+            </div>
+
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <label style="margin:0;">Vocab tree (optional)</label>
+                <span class="tip">i
+                  <span class="tiptext">
+                    Only needed if you explicitly enable vocab/loop features that require it.
+                  </span>
+                </span>
+              </div>
+              <div class="inline">
+                <input name="vocab_tree" placeholder="(optional) path or URL" />
+                <button class="btn-ghost" type="button"
+                  hx-get="/browse?target=vocab_tree&mode=file&path=/mnt/c"
+                  hx-target="#modal" hx-swap="innerHTML">Browse</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="checks">
+            <label class="check"><input type="checkbox" name="use_gpu" checked> use_gpu</label>
+            <label class="check"><input type="checkbox" name="single_camera" checked> single_camera</label>
+            <label class="check"><input type="checkbox" name="loop_detection"> loop_detection</label>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Training -->
+          <div class="row">
+            <div>
+              <label>Iterations</label>
+              <input name="iterations" value="30000" />
+            </div>
+            <div>
+              <label>Resume (continue training)</label>
+              <div class="checks" style="margin-top:0;">
+                <label class="check"><input type="checkbox" name="resume"> resume</label>
+              </div>
+              <div class="hint">Use only if checkpoints exist in gs_out.</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Save iters (space-separated)</label>
+              <input name="save_iters" value="7000 10000 15000 20000 30000" />
+            </div>
+            <div>
+              <label>Checkpoint iters (space-separated)</label>
+              <input name="checkpoint_iters" value="10000 30000" />
+            </div>
+          </div>
+
+          <div>
+            <label>Extra train args (optional)</label>
+            <input name="extra_train_args" placeholder="e.g. --resolution 1 --densify_until_iter 15000" />
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-top:6px;">
+            <button class="btn btn-danger" type="reset">Clear</button>
+            <button class="btn" type="submit">Run</button>
+          </div>
+
+          <div class="hint">
+            If inputs are wrong (missing paths / both video+images), server returns 400 and job won’t start.
+          </div>
+        </form>
+      </div>
+
+      <!-- Right: Jobs -->
+      <div class="card">
+        <div class="card-title">
+          <div>Jobs</div>
+          <div class="muted">Auto-refresh</div>
+        </div>
+
+        <div
+          hx-get="/jobs"
+          hx-trigger="load, every 2s"
+          hx-swap="innerHTML"
+          style="display:flex; flex-direction:column; gap:12px;"
+        >
+          <div class="muted">Loading jobs…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal container (HTMX loads _browse_modal.html here) -->
+  <div id="modal"></div>
+
+  <script>
+    // Make modal show/hide automatically whenever HTMX swaps content in #modal
+    document.body.addEventListener('htmx:afterSwap', function(evt){
+      if (evt.detail && evt.detail.target && evt.detail.target.id === "modal") {
+        const modal = document.getElementById("modal");
+        modal.classList.add("show");
+      }
+    });
+    document.body.addEventListener('htmx:beforeSwap', function(evt){
+      // if server returns empty for modal, hide it
+      if (evt.detail && evt.detail.target && evt.detail.target.id === "modal") {
+        if (!evt.detail.xhr.responseText || evt.detail.xhr.responseText.trim() === "") {
+          document.getElementById("modal").classList.remove("show");
+        }
+      }
+    });
+    // click outside to close modal
+    document.getElementById("modal").addEventListener("click", function(e){
+      if (e.target.id === "modal") this.classList.remove("show");
+    });
+  </script>
+</body>
+</html>

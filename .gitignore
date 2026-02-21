@@ -222,3 +222,14 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Windows metadata
+*:Zone.Identifier
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Platform runtime data (do not commit)
+gs_platform/app/data/
+gs_platform/app/jobs_db/

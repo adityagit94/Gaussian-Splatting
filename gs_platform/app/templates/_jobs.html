@@ -1,0 +1,97 @@
+{% if jobs and jobs|length > 0 %}
+  <div style="display:flex; flex-direction:column; gap:12px;">
+
+    {% for j in jobs %}
+      {% set colors = {
+        "running": "#22c55e",
+        "done": "#3b82f6",
+        "error": "#ef4444",
+        "stopped": "#f59e0b",
+        "queued": "#a855f7"
+      } %}
+      {% set c = colors.get(j.state, "#8b949e") %}
+
+      <div class="card" style="
+        border-left: 6px solid {{c}};
+        box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      ">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+
+          <div style="min-width:0;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <a href="/job/{{ j.id }}" style="text-decoration:none; font-weight:900;">
+                Job {{ j.id }}
+              </a>
+
+              <span style="
+                background: {{c}};
+                color: #0b0b0b;
+                padding: 5px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 900;
+              ">
+                {{ j.state }}
+              </span>
+
+              {% if j.pid %}
+                <span class="muted">pid={{ j.pid }}</span>
+              {% endif %}
+
+              {% if j.return_code is not none %}
+                <span class="muted">rc={{ j.return_code }}</span>
+              {% endif %}
+            </div>
+
+            <div style="margin-top:8px; display:flex; flex-direction:column; gap:4px;">
+              <div class="muted" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                <b>workspace:</b>
+                <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
+                  {{ j.workspace }}
+                </span>
+              </div>
+
+              {% if j.video %}
+                <div class="muted" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  <b>video:</b>
+                  <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
+                    {{ j.video }}
+                  </span>
+                </div>
+              {% endif %}
+
+              {% if j.images_dir %}
+                <div class="muted" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                  <b>images_dir:</b>
+                  <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
+                    {{ j.images_dir }}
+                  </span>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if j.error %}
+              <div style="margin-top:10px; color:#ef4444; font-size:12px;">
+                {{ j.error }}
+              </div>
+            {% endif %}
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:center;">
+            <a class="btn-ghost" href="/job/{{ j.id }}">Open</a>
+
+            {% if j.state == "running" %}
+              <form method="post" action="/job/{{ j.id }}/stop" style="margin:0;">
+                <button class="btn btn-danger" type="submit">Stop</button>
+              </form>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+
+  </div>
+{% else %}
+  <div class="muted">No jobs yet.</div>
+{% endif %}
