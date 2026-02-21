@@ -1,3 +1,20 @@
+# GS outputs
+gs_data/
+datasets/
+outputs/
+**/point_cloud/
+**/checkpoints/
+**/*.ply
+**/*.bin
+**/*.db
+
+# Submodule builds
+**/build/
+
+# WSL junk
+*.log
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
