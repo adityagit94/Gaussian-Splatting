@@ -186,17 +186,6 @@ To reduce floaters:
 
 ---
 
-# 🚫 What NOT To Commit
-
-Do NOT commit:
-
-- datasets
-- training outputs (.ply, .bin, .db)
-- conda folders
-- build folders
-
----
-
 # 🛠 Troubleshooting
 
 ## CUDA OOM
@@ -215,11 +204,11 @@ python -c "import torch; print(torch.cuda.is_available())"
 
 # 📌 Environment Reference
 
-See `environment.md` for:
-- Driver version
-- CUDA version
-- PyTorch version
-- COLMAP commit
+See `environment.md` for: In my case these were the 
+- Driver version - 576.88
+- CUDA version - 12.9
+- PyTorch version - 2.8.0+cu128 (CUDA 12.8 wheels)
+- COLMAP commit - 3.14.0.dev0 (Commit fe411191 on 2026-02-12) with CUDA
 
 ---
 
